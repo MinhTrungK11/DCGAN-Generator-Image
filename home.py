@@ -13,7 +13,7 @@ def app():
     st.write("Mô hình GAN cũng là một trò chơi tương tự, nơi có hai mạng nơ-ron cạnh tranh lẫn nhau. Mạng đầu tiên tạo ra dữ liệu giả, trong khi mạng thứ hai cố gắng phân biệt giữa dữ liệu thật và dữ liệu giả.")
     st.header("2.   Cấu trúc GAN")
     st.write("Kiến trúc mô hình GAN bao gồm hai mô hình mạng nơ-ron là mạng Generator và mạng Discriminator.")
-    st.image("./Image/CauTrucGAN.png", caption="cấu trúc mô hình GAN", use_column_width=True)
+    st.image("./Image/CauTrucGAN.png", caption="Cấu trúc mô hình GAN", use_column_width=True)
     st.header("2.1. Mạng Generator")
     st.write("Mạng Generator, thường được biểu diễn là G(z), là mạng nơ-ron có nhiệm vụ tạo ra dữ liệu giả từ một vector nhiễu ngẫu nhiên z. Đầu vào của Generator là vector nhiễu z có phân phối ngẫu nhiên để tạo ra tạo ra dữ liệu mẫu và đưa đến cho mạng Discriminator.")
     st.header("2.2. Mạng Discriminator")

@@ -2,10 +2,7 @@ import streamlit as st
 
 from streamlit_option_menu import option_menu
 
-import home, trending, test, your, about
-# st.set_page_config(
-#         page_title="Pondering",
-# )
+import home, train, test
 class MultiApp:
 
     def __init__(self):
@@ -23,8 +20,8 @@ class MultiApp:
         with st.sidebar:        
             app = option_menu(
                 menu_title='Generation ',
-                options=['Home','Account','Trending','Your Posts','about'],
-                icons=['house-fill','person-circle','trophy-fill','chat-fill','info-circle-fill'],
+                options=['Home','Training','Testing'],
+                icons=['house-fill','book-fill', 'speedometer2'],
                 menu_icon='chat-text-fill',
                 default_index=1,
                 styles={
@@ -35,16 +32,11 @@ class MultiApp:
                 
                 )
 
-        
         if app == "Home":
             home.app()
-        if app == "Account":
-            test.app()    
-        if app == "Trending":
-            trending.app()        
-        if app == 'Your Posts':
-            your.app()
-        if app == 'about':
-            about.app()           
+        if app == "Training":
+            train.app()  
+        if app == "Testing":
+            test.app()               
     run()            
          

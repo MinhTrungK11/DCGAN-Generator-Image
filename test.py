@@ -17,7 +17,7 @@ def get_img_as_base64(file):
     return base64.b64encode(data).decode()
 
 
-img = get_img_as_base64("background.jpg")
+img = get_img_as_base64("./Image/background.jpg")
 
 page_bg_img = f"""
 <style>
@@ -115,31 +115,29 @@ model_model_train = load_and_evaluate_model(path_model_train)
 def app():
     # Create a Streamlit app
     st.header("DCGAN Image Generator")
-    model_options = ["-- Choose processing model --","Train", "RETRAIN", "ModelTrain"]
-    selected_option = st.sidebar.selectbox("Select a model", model_options)
+    # model_options = ["-- Choose processing model --","Train", "RETRAIN", "ModelTrain"]
+    # selected_option = st.sidebar.selectbox("Select a model", model_options)
     # Sidebar to select the model
     selected_model = None
-
-    if selected_option != "-- Choose processing model --":
-        if selected_option == "Train":
-            selected_model = model_train
-        elif selected_option == "RETRAIN":
-            selected_model = model_retrain
-        else:
+    train_model = st.sidebar.selectbox("Select Model", ["GAN", "DCGAN"])
+    if train_model == "GAN":
+        st.write("Welcome GAN")
+    elif train_model == "DCGAN":
+        train_option = st.sidebar.selectbox("Select Option", ["Model", "Train Model", "Remodel"])
+        if train_option == "Model":
             selected_model = model_model_train
+        elif train_option == "Remodel":
+            selected_model = model_retrain
+        elif train_option == "Train Model":
+            selected_model = model_train
     if selected_model is not None:  # Check if selected_model is defined
         # Number of samples to generate for each selection
-        num_samples = 2
+        num_samples = 14
         # Allow users to control input vectors interactively
         st.sidebar.header("Customize Noise Vector")
         noise_vector = torch.randn(num_samples, dim_z, 1, 1, device=device)
         noise_vector_widget = st.sidebar.slider("Adjust Noise Vector", -3.0, 3.0, 0.0)
         noise_vector += noise_vector_widget
-        # # Display the customized noise vector as a formatted list
-        # st.sidebar.subheader("Custom Noise Vector:")
-        # st.sidebar.write(list(noise_vector[0].cpu().numpy()))
-        # Generate and display images based on the custom noise vector
-
         generated_images_list = []
         num_image = 1
         for i in range(num_image):
@@ -152,7 +150,7 @@ def app():
 
         # Combine the images into a single numpy array with shape (H, W, C)
         combined_images = np.concatenate(generated_images_list, axis=0)
-        image_width = 300
+        image_width = 100
         # Display the combined row of images
         st.image(combined_images, use_column_width=False,width=image_width, channels="RGB")
 

@@ -1,7 +1,7 @@
 import streamlit as st
 
-def main():
-    st.title("Train and Test GAN and DCGAN")
+def app():
+    st.title("Hyper Parameter")
 
     train_model = st.sidebar.selectbox("Select Model", ["GAN", "DCGAN"])
     if train_model == "GAN":
@@ -15,6 +15,5 @@ def main():
         elif train_option == "Train Model":
             st.write("Welcome TRAIN DCGAN MODEL")
  
-
 if __name__ == "__main__":
-    main()
+    app()

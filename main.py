@@ -2,7 +2,7 @@ import streamlit as st
 
 from streamlit_option_menu import option_menu
 
-import home, train, test
+import home, train, test, aplication
 class MultiApp:
 
     def __init__(self):
@@ -16,14 +16,14 @@ class MultiApp:
         })
 
     def run():
-        # app = st.sidebar(
+        app = "Home"
         with st.sidebar:        
             app = option_menu(
                 menu_title='Generation ',
-                options=['Home','Training','Testing'],
+                options=['Home','Training','Testing', 'Aplication'],
                 icons=['house-fill','book-fill', 'speedometer2'],
                 menu_icon='chat-text-fill',
-                default_index=1,
+                default_index=0,
                 styles={
                     "container": {"padding": "5!important","background-color":'black'},
         "icon": {"color": "white", "font-size": "23px"}, 
@@ -37,6 +37,8 @@ class MultiApp:
         if app == "Training":
             train.app()  
         if app == "Testing":
-            test.app()               
+            test.app()  
+        if app == "Aplication":
+            aplication.app()              
     run()            
          

@@ -4,6 +4,10 @@ def app():
 
     st.title("Generative Adversarial Network (GAN)")
 
+    st.header("**Contributors:**")
+    st.write("- Student Name 1: Phan Minh Trung - 20133106")
+    st.write("- Student Name 2: Ngô Quang Trường - 20133107")
+
     st.header("1.   Tổng quát về Generative Adversarial Network (GAN)")
     st.write("Mạng sáng tạo đối nghịch (Generative Adversarial Network) là một mô hình Deep Learning, được giới thiệu bởi Ian Goodfellow vào năm 2014. Mô hình này tập trung vào khả năng tạo ra dữ liệu mới từ một phân phối xác suất đã cho. Hay nói một cách khác là tạo ra các dữ liệu mới dựa trên tập dữ liệu đã có sẵn.")
     st.write("\n")

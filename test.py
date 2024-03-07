@@ -2,68 +2,15 @@ import streamlit as st
 import numpy as np
 import torch
 import torch.nn as nn
-import base64
 import plotly.express as px
+import time
+from keras.models import load_model
+import matplotlib.pyplot as plt
+from PIL import Image
+
 dim_z = 100
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 ngpu = 1
-
-df = px.data.iris()
-
-@st.cache_data
-def get_img_as_base64(file):
-    with open(file, "rb") as f:
-        data = f.read()
-    return base64.b64encode(data).decode()
-
-
-img = get_img_as_base64("./Image/background.jpg")
-
-page_bg_img = f"""
-<style>
-[data-testid="stAppViewContainer"] > .main {{
-    background-image: url("https://imageio.forbes.com/specials-images/imageserve/64aa09f4d3dcc2e90091cf1f/Abstract-dots-and-waves-on-black-background-showing-how-AI-will-change-work-/960x0.jpg?format=jpg&width=1440");
-    background-size: 100%;
-    background-position: top left;
-    background-repeat: no-repeat;
-    background-attachment: local;
-}}
-
-[data-testid="stSidebar"] > div:first-child {{
-    background-image: url("data:image/png;base64,{img}");
-    background-position: center; 
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-}}
-
-[data-testid="stHeader"] {{
-    background: rgba(0,0,0,0);
-}}
-
-[data-testid="stToolbar"] {{
-    right: 2rem;
-}}
-.container {{
-    padding: 2rem;
-    text-align: center;
-.title {{
-    font-size: 40px;
-    color: black;
-    margin-bottom: 2rem;
-}}
-.h1 {{
-    color: black;
-}}
-.subtitle {{
-    font-size: 30px;
-    color: black;
-    margin-bottom: 2rem;
-    text-align: left;
-}}
-}}
-</style>
-"""
-st.markdown(page_bg_img, unsafe_allow_html=True)
 
 class Generator(nn.Module):
     def __init__(self, ngpu):
@@ -93,16 +40,51 @@ class Generator(nn.Module):
         
     def forward(self, z):
         return self.structure(z)
+class Discriminator(nn.Module):
+    def __init__(self, ngpu):
+        super(Discriminator, self).__init__()
+        self.ngpu = ngpu  
+        self.structure = nn.Sequential(
+            nn.Conv2d(3, 64, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.LeakyReLU(0.2, inplace=True),  
+
+            nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(128), 
+            nn.LeakyReLU(0.2, inplace=True),
+
+    
+            nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.LeakyReLU(0.2, inplace=True),
+
+
+            nn.Conv2d(256, 512, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(512),
+            nn.LeakyReLU(0.2, inplace=True),
+
+
+            nn.Conv2d(512, 1, kernel_size=4, stride=1, padding=0, bias=False),
+            nn.Sigmoid() 
+        )
+
+    def forward(self, img):
+        return self.structure(img)
 
 model_G = Generator(ngpu=1)
 model_G.to(device)
+
+model_D = Discriminator(ngpu=1)
+model_D.to(device)
 # Define paths to pre-trained models
 path_train = "./Model/celeba_gen_train.pth"
 path_retrain = "./Model/generator_retrained.pth"
 path_model_train = "./Model/celeba_gen_1.pth"
 from test import Generator
+from test import Discriminator
+# Load the saved GAN model
+gan = load_model('./Model/gan_model_hyper.h5')
+generator = gan.layers[1]
 
-# Load pre-trained models and set to evaluation mode
 def load_and_evaluate_model(path):
     model_instance = Generator(ngpu=1)
     model_instance.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
@@ -112,24 +94,69 @@ def load_and_evaluate_model(path):
 model_train = load_and_evaluate_model(path_train)
 model_retrain = load_and_evaluate_model(path_retrain)
 model_model_train = load_and_evaluate_model(path_model_train)
+from keras.models import load_model
+from PIL import ImageEnhance
+def resize_image(image, basewidth=200):
+    # Chuyển đổi ảnh từ dạng numpy array sang PIL Image
+    img = Image.fromarray((image * 255).astype('uint8'))
+
+    # Tính toán kích thước mới
+    wpercent = (basewidth / float(img.size[0]))
+    hsize = int((float(img.size[1]) * float(wpercent)))
+
+    # Thay đổi kích thước ảnh
+    img = img.resize((basewidth, hsize), Image.BICUBIC)
+
+    # Chuyển đổi ảnh từ dạng PIL Image sang numpy array
+    img = np.array(img) / 255.0
+
+    return img
+
 def app():
-    # Create a Streamlit app
-    st.header("DCGAN Image Generator")
-    # model_options = ["-- Choose processing model --","Train", "RETRAIN", "ModelTrain"]
-    # selected_option = st.sidebar.selectbox("Select a model", model_options)
-    # Sidebar to select the model
     selected_model = None
     train_model = st.sidebar.selectbox("Select Model", ["GAN", "DCGAN"])
     if train_model == "GAN":
-        st.write("Welcome GAN")
+        st.header("GAN Image Generator")
+        start_time = time.time()
+        # Number of images you want to generate
+        num_images = 14
+        # Generate images using the generator
+        generated_images = []
+
+        for _ in range(num_images):
+            latent_vector = np.random.normal(size=(1, 32))
+            generated_image = generator.predict(latent_vector)
+            generated_images.append(generated_image)
+
+        # Display generated images in a row without captions
+        st.image(
+            [Image.fromarray((img[0] * 255).astype('uint8')).resize((100, 100)) for img in generated_images],
+            width=100,  # Set the desired width
+        )
+        end_time = time.time()
+        execution_time = (end_time - start_time)*1000
+        st.write(f"Thời gian chạy: {execution_time:.2f} mili giây")
     elif train_model == "DCGAN":
+        st.header("DCGAN Image Generator")
         train_option = st.sidebar.selectbox("Select Option", ["Model", "Train Model", "Remodel"])
         if train_option == "Model":
+            start_time = time.time()
             selected_model = model_model_train
+            end_time = time.time()
+            execution_time = (end_time - start_time)*1000
+            st.write(f"Thời gian chạy: {execution_time:.2f} mili giây")
         elif train_option == "Remodel":
+            start_time = time.time()
             selected_model = model_retrain
+            end_time = time.time()
+            execution_time = (end_time - start_time)*1000
+            st.write(f"Thời gian chạy: {execution_time:.2f} mili giây")
         elif train_option == "Train Model":
+            start_time = time.time()
             selected_model = model_train
+            end_time = time.time()
+            execution_time = (end_time - start_time)*1000
+            st.write(f"Thời gian chạy: {execution_time:.2f} mili giây")
     if selected_model is not None:  # Check if selected_model is defined
         # Number of samples to generate for each selection
         num_samples = 14
@@ -157,3 +184,8 @@ def app():
         # Optionally, display the input vector used for these images
         st.sidebar.subheader("Custom Noise Vector:")
         st.sidebar.write(list(noise_vector[0].cpu().numpy()))
+
+
+
+
+
